@@ -1,6 +1,10 @@
 package main
 
-import "log"
+import (
+	"log"
+
+	_ "github.com/DopamineNone/gedis/internal/command"
+)
 
 func main() {
 	application := wireApp()

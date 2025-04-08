@@ -15,11 +15,16 @@ var (
 )
 
 type Config struct {
-	TCPConfig	`yaml:"tcp"`
+	TCPConfig      `yaml:"tcp"`
+	DatabaseConfig `yaml:"database"`
 }
 
 type TCPConfig struct {
 	Addr string `yaml:"addr"`
+}
+
+type DatabaseConfig struct {
+	Count int `yaml:"count"`
 }
 
 func readConfig() {

@@ -17,9 +17,9 @@ import (
 // Injectors from wire.go:
 
 func wireApp() *app.App {
-	handlerDatabase := database.New()
-	appHandler := handler.NewHandler(handlerDatabase)
 	config := conf.New()
+	handlerDatabase := database.New(config)
+	appHandler := handler.NewHandler(handlerDatabase)
 	listener := tcp.MustListener(config)
 	appApp := app.New(appHandler, listener)
 	return appApp
