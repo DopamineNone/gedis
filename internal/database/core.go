@@ -13,12 +13,13 @@ type DataEntity struct {
 }
 
 type Core struct {
-	index int
-	data  dict.Dict
+	index  int
+	data   dict.Dict
+	AddAOF func(line handler.CmdLine)
 }
 
-func NewCore(index int, data dict.Dict) *Core {
-	return &Core{index: index, data: data}
+func NewCore(index int, data dict.Dict, addAOF func(line handler.CmdLine)) *Core {
+	return &Core{index: index, data: data, AddAOF: addAOF}
 }
 
 func (db *Core) Exec(client conn.Conn, args handler.CmdLine) reply.Reply {

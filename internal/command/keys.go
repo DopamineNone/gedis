@@ -4,6 +4,7 @@ import (
 	"github.com/DopamineNone/gedis/internal/database"
 	"github.com/DopamineNone/gedis/internal/resp/handler"
 	"github.com/DopamineNone/gedis/internal/resp/reply"
+	"github.com/DopamineNone/gedis/internal/utils"
 	"path/filepath"
 )
 
@@ -12,7 +13,11 @@ func execDel(db *database.Core, args handler.CmdLine) reply.Reply {
 	for i, key := range args {
 		keys[i] = string(key)
 	}
-	return reply.NewIntReply(db.RemoveMultiKeys(keys...))
+	deleted := db.RemoveMultiKeys(keys...)
+	if deleted > 0 {
+		db.AddAOF(utils.ToCommandLine("del", args...))
+	}
+	return reply.NewIntReply(deleted)
 }
 
 func execExists(db *database.Core, args handler.CmdLine) reply.Reply {
@@ -40,6 +45,7 @@ func execKeys(db *database.Core, args handler.CmdLine) reply.Reply {
 
 func execFlushDB(db *database.Core, args handler.CmdLine) reply.Reply {
 	db.Flush()
+	db.AddAOF(utils.ToCommandLine("flush", args...))
 	return reply.NewOkReply()
 }
 
@@ -64,6 +70,7 @@ func execRename(db *database.Core, args handler.CmdLine) reply.Reply {
 	}
 	db.PutEntity(newKey, entity)
 	db.Remove(key)
+	db.AddAOF(utils.ToCommandLine("rename", args...))
 	return reply.NewOkReply()
 }
 
@@ -80,6 +87,7 @@ func execRenameNx(db *database.Core, args handler.CmdLine) reply.Reply {
 	}
 	db.PutEntity(newKey, entity)
 	db.Remove(key)
+	db.AddAOF(utils.ToCommandLine("renamenx", args...))
 	return reply.NewIntReply(1)
 }
 

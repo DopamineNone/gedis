@@ -3,3 +3,5 @@ tcp:
 
 database:
   count: 16
+  append_only: true
+  aof_filename: "data.aof"

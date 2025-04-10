@@ -24,7 +24,9 @@ type TCPConfig struct {
 }
 
 type DatabaseConfig struct {
-	Count int `yaml:"count"`
+	Count       int    `yaml:"count"`
+	AppendOnly  bool   `yaml:"append_only"`
+	AOFFilename string `yaml:"aof_filename"`
 }
 
 func readConfig() {

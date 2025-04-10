@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/DopamineNone/gedis/conf"
+	"github.com/DopamineNone/gedis/internal/aof"
 	"github.com/DopamineNone/gedis/internal/datastruct/dict"
 	"github.com/DopamineNone/gedis/internal/resp/conn"
 	"github.com/DopamineNone/gedis/internal/resp/handler"
@@ -12,10 +13,13 @@ import (
 	"strings"
 )
 
-var ProvideSet = wire.NewSet(New)
+var (
+	ProvideSet = wire.NewSet(New)
+)
 
 type DB struct {
 	dbSet []*Core
+	*aof.AofHandler
 }
 
 func New(cfg *conf.Config) handler.Database {
@@ -23,10 +27,26 @@ func New(cfg *conf.Config) handler.Database {
 		cfg.Count = 16
 	}
 	set := make([]*Core, cfg.Count)
-	for i := range set {
-		set[i] = NewCore(i, dict.NewSyncDict())
+	db := &DB{dbSet: set}
+	if cfg.AppendOnly {
+		var err error
+		db.AofHandler, err = aof.NewAofHandler(cfg, db)
+		if err != nil {
+			panic(err)
+		}
+
+		for i := range set {
+			set[i] = NewCore(i, dict.NewSyncDict(), func(line handler.CmdLine) {
+				db.AofHandler.AddAOF(i, line)
+			})
+		}
+		db.LoadAOF()
+	} else {
+		for i := range set {
+			set[i] = NewCore(i, dict.NewSyncDict(), nil)
+		}
 	}
-	return &DB{dbSet: set}
+	return db
 }
 
 func (db *DB) Exec(client conn.Conn, args handler.CmdLine) reply.Reply {
@@ -49,12 +69,12 @@ func (db *DB) Exec(client conn.Conn, args handler.CmdLine) reply.Reply {
 
 func (db *DB) Close() {
 	//TODO implement me
-	panic("implement me")
+	return
 }
 
 func (db *DB) AfterClientClose(client conn.Conn) {
 	//TODO implement me
-	panic("implement me")
+	return
 }
 
 func execSelect(c conn.Conn, database *DB, args [][]byte) reply.Reply {
